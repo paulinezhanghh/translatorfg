@@ -5,12 +5,16 @@ name: Python application
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "f24" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "f24" ]
 
 permissions:
   contents: read
+
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+  AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
 
 jobs:
   build:
@@ -27,6 +31,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
+        pip install -U sentence-transformers
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
