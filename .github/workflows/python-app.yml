@@ -15,6 +15,7 @@ permissions:
 env:
   API_KEY: ${{ secrets.API_KEY }}
   AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
+  API_VERSION: ${{ secrets.API_VERSION }}
 
 jobs:
   build:
