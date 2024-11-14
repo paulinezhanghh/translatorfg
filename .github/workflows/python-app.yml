@@ -13,9 +13,7 @@ permissions:
   contents: read
 
 env:
-  API_KEY: ${{ secrets.API_KEY }}
-  AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
-  API_VERSION: ${{ secrets.API_VERSION }}
+  api_key: ${{ secrets.API_KEY }}
 
 jobs:
   build:
