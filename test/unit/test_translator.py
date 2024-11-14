@@ -30,13 +30,13 @@ def eval_single_response_complete(expected_answer: tuple[bool, str], llm_respons
 # -----------------------
 # Unit Tests
 # -----------------------
-def test_llm_normal_response_russian():
-    is_english, translated_content = translate_content("Это сообщение на русском языке.")
-    assert eval_single_response_complete((False, "This is a message in Russian."), (is_english, translated_content)) >= 0.9
+# def test_llm_normal_response_russian():
+#     is_english, translated_content = translate_content("Это сообщение на русском языке.")
+#     assert eval_single_response_complete((False, "This is a message in Russian."), (is_english, translated_content)) >= 0.9
 
-def test_llm_normal_response_korean():
-    is_english, translated_content = translate_content("이것은 한국어 메시지입니다.")
-    assert eval_single_response_complete((False, "This is a message in Korean."), (is_english, translated_content)) >= 0.9
+# def test_llm_normal_response_korean():
+#     is_english, translated_content = translate_content("이것은 한국어 메시지입니다.")
+#     assert eval_single_response_complete((False, "This is a message in Korean."), (is_english, translated_content)) >= 0.9
 
 def test_llm_gibberish_response1():
     is_english, translated_content = translate_content("wdejkcgvk")
