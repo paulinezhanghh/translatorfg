@@ -8,6 +8,9 @@ on:
   push:
     branches:
       - f24
+  pull_request:
+    branches:
+      - f24
   workflow_dispatch:
 
 jobs:
@@ -29,6 +32,9 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Install sentence transformers
+        run: pip install -U sentence-transformers
 
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
       - name: Zip artifact for deployment
