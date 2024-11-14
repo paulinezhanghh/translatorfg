@@ -21,8 +21,8 @@ def eval_single_response_translation(expected_answer: str, llm_response: str) ->
 def eval_single_response_complete(expected_answer: tuple[bool, str], llm_response: tuple[bool, str]) -> float:
     score = 0
     if expected_answer[0] == llm_response[0]:
-        score += 0.2
-    sim_score = eval_single_response_translation(expected_answer[1], llm_response[1]) * 0.8
+        score += 0.5
+    sim_score = eval_single_response_translation(expected_answer[1], llm_response[1]) * 0.5
     score += sim_score
     return min(1.0, score)
 
@@ -40,14 +40,13 @@ def test_llm_gibberish_response2():
     assert is_english == False
     assert translated_content == "Unintelligible or malformed text."
 
-# This tests will pass in final deliverables
-# def test_llm_normal_response_chinese():
-#     is_english, translated_content = translate_content("这是一条中文消息")
-#     assert eval_single_response_complete((False, "This is a Chinese message."), (is_english, translated_content)) >= 0.9
+def test_llm_normal_response_chinese():
+    is_english, translated_content = translate_content("这是一条中文消息")
+    assert eval_single_response_complete((False, "This is a Chinese message."), (is_english, translated_content)) >= 0.9
 
-# def test_llm_normal_response_french():
-#     is_english, translated_content = translate_content("Ceci est un message en français.")
-#     assert eval_single_response_complete((False, "This is a message in French."), (is_english, translated_content)) >= 0.9
+def test_llm_normal_response_french():
+    is_english, translated_content = translate_content("Ceci est un message en français.")
+    assert eval_single_response_complete((False, "This is a message in French."), (is_english, translated_content)) >= 0.9
 
 def test_llm_normal_response_spanish():
     is_english, translated_content = translate_content("Este es un mensaje en español.")
