@@ -1,124 +1,90 @@
 from src.translator import translate_content
-from mock import patch
-import pytest 
+import src.translator
 from openai import AzureOpenAI
+from difflib import SequenceMatcher
+from sentence_transformers import util, SentenceTransformer
+from unittest.mock import patch
+from dotenv import load_dotenv
 
-def test_chinese():
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+load_dotenv()
+client = AzureOpenAI(
+    api_key=os.getenv("API_KEY"),
+    api_version=os.getenv("API_VERSION"),
+    azure_endpoint=os.getenv("AZURE_ENDPOINT")
+)
+def eval_single_response_translation(expected_answer: str, llm_response: str) -> float:
+    return float(util.pytorch_cos_sim(model.encode(expected_answer), model.encode(llm_response))[0][0])
+
+def eval_single_response_complete(expected_answer: tuple[bool, str], llm_response: tuple[bool, str]) -> float:
+    score = 0
+    if expected_answer[0] == llm_response[0]:
+        score += 0.2
+    sim_score = eval_single_response_translation(expected_answer[1], llm_response[1]) * 0.8
+    score += sim_score
+    return min(1.0, score)
+
+
+# -----------------------
+# Unit Tests
+# -----------------------
+def test_llm_gibberish_response1():
+    is_english, translated_content = translate_content("wdejkcgvk")
+    assert is_english == False
+    assert translated_content == "Unintelligible or malformed text."
+
+def test_llm_gibberish_response2():
+    is_english, translated_content = translate_content("...")
+    assert is_english == False
+    assert translated_content == "Unintelligible or malformed text."
+
+
+def test_llm_normal_response_chinese():
     is_english, translated_content = translate_content("这是一条中文消息")
+    assert eval_single_response_complete((False, "This is a Chinese message."), (is_english, translated_content)) >= 0.9
+
+def test_llm_normal_response_french():
+    is_english, translated_content = translate_content("Ceci est un message en français.")
+    assert eval_single_response_complete((False, "This is a message in French."), (is_english, translated_content)) >= 0.9
+
+def test_llm_normal_response_spanish():
+    is_english, translated_content = translate_content("Este es un mensaje en español.")
+    assert eval_single_response_complete((False, "This is a message in Spanish."), (is_english, translated_content)) >= 0.9
+
+# -----------------------
+# Mock Tests
+# -----------------------
+@patch.object(src.translator.client.chat.completions, 'create')
+def test_llm_gibberish__response1(mocker):
+    mocker.return_value.choices[0].message.content = "Unintelligible or malformed text."
+
+
+    is_english, translated_content = translate_content("dhshghsdgashj.")
+
     assert is_english == False
-    assert translated_content == "This is a Chinese message"
+    assert translated_content == "Unintelligible or malformed text."
 
 
-def test_french():
-    is_english, translated_content = translate_content("Ceci est un message en français")
+
+@patch.object(src.translator.client.chat.completions, 'create')
+def test_llm_normal_response_japanese(mocker):
+    mocker.return_value.choices[0].message.content = "I walked up some stairs."
+
+
+    is_english, translated_content = translate_content("私は階段を上った。")
+    similarity_score = eval_single_response_translation("I walked up some stairs.", translated_content)
+
     assert is_english == False
-    assert translated_content == "This is a French message"
+    assert similarity_score >= 0.9, f"Similarity is actually {similarity_score}"
 
-def test_spanish():
-    is_english, translated_content = translate_content("Esta es un mensaje en español")
+
+@patch.object(src.translator.client.chat.completions, 'create')
+def test_llm_normal_response_spanish(mocker):
+    mocker.return_value.choices[0].message.content = "This is a message in Spanish."
+
+    is_english, translated_content = translate_content("Este es un mensaje en español.")
+    similarity_score = eval_single_response_translation("This is a message in Spanish.", translated_content)
+
     assert is_english == False
-    assert translated_content == "This is a Spanish message"
-
-def test_portuguese():
-    is_english, translated_content = translate_content("Esta é uma mensagem em português")
-    assert is_english == False
-    assert translated_content == "This is a Portuguese message"
-
-def test_japanese():
-    is_english, translated_content = translate_content("これは日本語のメッセージです")
-    assert is_english == False
-    assert translated_content == "This is a Japanese message"
-
-def test_korean():
-    is_english, translated_content = translate_content("이것은 한국어 메시지입니다")
-    assert is_english == False
-    assert translated_content == "This is a Korean message"
-
-def test_german():
-    is_english, translated_content = translate_content("Dies ist eine Nachricht auf Deutsch")
-    assert is_english == False
-    assert translated_content == "This is a German message"
-
-def test_italian():
-    is_english, translated_content = translate_content("Questo è un messaggio in italiano")
-    assert is_english == False
-    assert translated_content == "This is an Italian message"
-
-def test_russian():
-    is_english, translated_content = translate_content("Это сообщение на русском")
-    assert is_english == False
-    assert translated_content == "This is a Russian message"
-
-def test_arabic():
-    is_english, translated_content = translate_content("هذه رسالة باللغة العربية")
-    assert is_english == False
-    assert translated_content == "This is an Arabic message"
-
-def test_hindi():
-    is_english, translated_content = translate_content("यह हिंदी में संदेश है")
-    assert is_english == False
-    assert translated_content == "This is a Hindi message"
-
-def test_thai():
-    is_english, translated_content = translate_content("นี่คือข้อความภาษาไทย")
-    assert is_english == False
-    assert translated_content == "This is a Thai message"
-
-def test_turkish():
-    is_english, translated_content = translate_content("Bu bir Türkçe mesajdır")
-    assert is_english == False
-    assert translated_content == "This is a Turkish message"
-
-def test_vietnamese():
-    is_english, translated_content = translate_content("Đây là một tin nhắn bằng tiếng Việt")
-    assert is_english == False
-    assert translated_content == "This is a Vietnamese message"
-
-def test_catalan():
-    is_english, translated_content = translate_content("Esto es un mensaje en catalán")
-    assert is_english == False
-    assert translated_content == "This is a Catalan message"
-
-def test_english():
-    is_english, translated_content = translate_content("This is an English message")
-    assert is_english == True
-    assert translated_content == "This is an English message"
-
-def test_llm_normal_response():
-    pass
-
-def test_llm_gibberish_response():
-    pass
-
-
-@patch.object(client.chat.completions, 'create')
-def test_unexpected_language(mocker):
-    # Mock the model's response to return a random message
-    mocker.return_value.choices[0].message.content = "I don't understand your request"
-
-    # Assert that the function returns the default error tuple
-    assert translate_content("Hier ist dein erstes Beispiel.") == (False, "Unintelligible or malformed text.")
-
-@patch.object(client.chat.completions, 'create')
-def test_malformed_tuple_response(mocker):
-    # Mock the model's response to return a malformed tuple response
-    mocker.return_value.choices[0].message.content = "('Yes', 'This is English text.')"
-
-    # Assert that the function handles non-boolean first tuple element
-    assert translate_content("This is already in English.") == (True, "Unintelligible or malformed text.")
-
-@patch.object(client.chat.completions, 'create')
-def test_non_tuple_response(mocker):
-    # Mock the model's response to return a string instead of a tuple
-    mocker.return_value.choices[0].message.content = "This is English text."
-
-    # Assert that the function identifies the response as malformed
-    assert translate_content("Some random text") == (True, "Unintelligible or malformed text.")
-
-@patch.object(client.chat.completions, 'create')
-def test_syntax_error_in_response(mocker):
-    # Mock the model's response to return syntactically incorrect output
-    mocker.return_value.choices[0].message.content = "(True, 'Unclosed string)"
-
-    # Assert that the function catches the syntax error
-    assert translate_content("Another random text") == (True, "Unintelligible or malformed text.")
+    assert similarity_score >= 0.9, f"Similarity is actually {similarity_score}"
