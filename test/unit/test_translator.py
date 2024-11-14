@@ -5,6 +5,7 @@ from difflib import SequenceMatcher
 from sentence_transformers import util, SentenceTransformer
 from unittest.mock import patch
 from dotenv import load_dotenv
+import os
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
