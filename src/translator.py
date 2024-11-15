@@ -12,7 +12,7 @@ client = AzureOpenAI(
 
 
 def get_translation(post: str) -> str:
-    context = "Translate the query into English. If you can't recognize the language or if the query does't make senses, just respond 'Unintelligible or malformed text.'"
+    context = "Translate the query into English. If you can't recognize the language or if the query doesn't make sense, just respond 'Unintelligible or malformed text.'"
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
