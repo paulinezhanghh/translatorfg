@@ -33,7 +33,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install -U sentence-transformers
-        pip install -U sentence-transformers
         pip install --quiet openai
         pip install python-dotenv
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
