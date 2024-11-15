@@ -21,8 +21,8 @@ def eval_single_response_translation(expected_answer: str, llm_response: str) ->
 def eval_single_response_complete(expected_answer: tuple[bool, str], llm_response: tuple[bool, str]) -> float:
     score = 0
     if expected_answer[0] == llm_response[0]:
-        score += 0.5
-    sim_score = eval_single_response_translation(expected_answer[1], llm_response[1]) * 0.5
+        score += 0.2
+    sim_score = eval_single_response_translation(expected_answer[1], llm_response[1]) * 0.8
     score += sim_score
     return min(1.0, score)
 
